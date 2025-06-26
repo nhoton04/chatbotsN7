@@ -1,0 +1,210 @@
+<<<<<<< HEAD
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Trợ lý học tập thông minh</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <!-- Dark Mode Toggle Button -->
+    <div class="theme-toggle" onclick="toggleTheme()">
+        <i class="fas fa-moon" id="theme-icon"></i>
+    </div>
+
+    <header class="hero-header">
+        <div class="header-content">
+            <h1>Trợ lý học tập thông minh</h1>
+            <p>Khơi dậy tư duy – Đồng hành cùng tri thức.</p>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="menu-grid">
+            <div class="subject-card" onclick="chooseSubject('Toán học')">
+                <img src="images/toan.jpg" alt="Toán học">
+                <span>Toán học</span>
+            </div>
+            <div class="subject-card" onclick="chooseSubject('Văn học')">
+                <img src="images/van.jpg" alt="Văn học">
+                <span>Văn học</span>
+            </div>
+            <div class="subject-card" onclick="chooseSubject('Lịch sử')">
+                <img src="images/lichsu.jpg" alt="Lịch sử">
+                <span>Lịch sử</span>
+            </div>
+            <div class="subject-card" onclick="chooseSubject('Khoa học')">
+                <img src="images/khoahoc.jpg" alt="Khoa học">
+                <span>Khoa học</span>
+            </div>
+            <div class="subject-card" onclick="chooseSubject('Ngoại ngữ')">
+                <img src="images/ngoaingu.jpg" alt="Ngoại ngữ">
+                <span>Ngoại ngữ</span>
+            </div>
+        </section>
+
+        <section class="features-section">
+            <h2>Tại sao chọn Trợ lý học tập thông minh?</h2>
+            <div class="features-grid">
+                <div class="feature-item">
+                    <i class="fas fa-brain"></i>
+                    <h3>Học tập Cá nhân hóa</h3>
+                    <p>Hệ thống tự động điều chỉnh nội dung theo năng lực và tốc độ của bạn.</p>
+                </div>
+                <div class="feature-item">
+                    <i class="fas fa-comments"></i>
+                    <h3>Hỗ trợ 24/7</h3>
+                    <p>Giải đáp mọi thắc mắc ngay lập tức, bất cứ lúc nào, bất cứ nơi đâu.</p>
+                </div>
+                <div class="feature-item">
+                    <i class="fas fa-flask"></i>
+                    <h3>Nội dung phong phú</h3>
+                    <p>Khám phá kho kiến thức khổng lồ từ nhiều môn học và lĩnh vực.</p>
+                </div>
+                <div class="feature-item">
+                    <i class="fas fa-lightbulb"></i>
+                    <h3>Khơi dậy Sáng tạo</h3>
+                    <p>Các bài tập và thử thách được thiết kế để kích thích tư duy phản biện.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="cta-section">
+            <h2>Sẵn sàng Khám phá Tri thức Mới?</h2>
+            <p>Bắt đầu hành trình học tập thông minh của bạn ngay hôm nay!</p>
+            <button class="cta-button" onclick="scrollToTopAndShowSubjects()">Bắt Đầu Học Ngay</button>
+        </section>
+    </main>
+
+    <div class="chat-box" id="chatBox" style="display: none;">
+        <div class="chat-header">
+            💬 Trợ lý học tập
+            <span class="close-btn" onclick="closeChatBox()">✖</span>
+        </div>
+        <div class="chat-content" id="chatContent">
+            <div class="bot-message">📌 Hãy chọn một môn học để bắt đầu.</div>
+        </div>
+        <div class="chat-input">
+            <input type="text" id="chatInput" placeholder="Nhập câu hỏi...">
+            <button onclick="sendMessage()">
+                <i class="fas fa-paper-plane"></i>
+            </button>
+            <!-- Typing indicator -->
+            <div class="typing-indicator" id="typingIndicator" style="display: none;">
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+=======
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Trợ lý học tập thông minh</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <!-- Dark Mode Toggle Button -->
+    <div class="theme-toggle" onclick="toggleTheme()">
+        <i class="fas fa-moon" id="theme-icon"></i>
+    </div>
+
+    <header class="hero-header">
+        <div class="header-content">
+            <h1>Trợ lý học tập thông minh</h1>
+            <p>Khơi dậy tư duy – Đồng hành cùng tri thức.</p>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="menu-grid">
+            <div class="subject-card" onclick="chooseSubject('Toán học')">
+                <img src="images/toan.jpg" alt="Toán học">
+                <span>Toán học</span>
+            </div>
+            <div class="subject-card" onclick="chooseSubject('Văn học')">
+                <img src="images/van.jpg" alt="Văn học">
+                <span>Văn học</span>
+            </div>
+            <div class="subject-card" onclick="chooseSubject('Lịch sử')">
+                <img src="images/lichsu.jpg" alt="Lịch sử">
+                <span>Lịch sử</span>
+            </div>
+            <div class="subject-card" onclick="chooseSubject('Khoa học')">
+                <img src="images/khoahoc.jpg" alt="Khoa học">
+                <span>Khoa học</span>
+            </div>
+            <div class="subject-card" onclick="chooseSubject('Ngoại ngữ')">
+                <img src="images/ngoaingu.jpg" alt="Ngoại ngữ">
+                <span>Ngoại ngữ</span>
+            </div>
+        </section>
+
+        <section class="features-section">
+            <h2>Tại sao chọn Trợ lý học tập thông minh?</h2>
+            <div class="features-grid">
+                <div class="feature-item">
+                    <i class="fas fa-brain"></i>
+                    <h3>Học tập Cá nhân hóa</h3>
+                    <p>Hệ thống tự động điều chỉnh nội dung theo năng lực và tốc độ của bạn.</p>
+                </div>
+                <div class="feature-item">
+                    <i class="fas fa-comments"></i>
+                    <h3>Hỗ trợ 24/7</h3>
+                    <p>Giải đáp mọi thắc mắc ngay lập tức, bất cứ lúc nào, bất cứ nơi đâu.</p>
+                </div>
+                <div class="feature-item">
+                    <i class="fas fa-flask"></i>
+                    <h3>Nội dung phong phú</h3>
+                    <p>Khám phá kho kiến thức khổng lồ từ nhiều môn học và lĩnh vực.</p>
+                </div>
+                <div class="feature-item">
+                    <i class="fas fa-lightbulb"></i>
+                    <h3>Khơi dậy Sáng tạo</h3>
+                    <p>Các bài tập và thử thách được thiết kế để kích thích tư duy phản biện.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="cta-section">
+            <h2>Sẵn sàng Khám phá Tri thức Mới?</h2>
+            <p>Bắt đầu hành trình học tập thông minh của bạn ngay hôm nay!</p>
+            <button class="cta-button" onclick="scrollToTopAndShowSubjects()">Bắt Đầu Học Ngay</button>
+        </section>
+    </main>
+
+    <div class="chat-box" id="chatBox" style="display: none;">
+        <div class="chat-header">
+            💬 Trợ lý học tập
+            <span class="close-btn" onclick="closeChatBox()">✖</span>
+        </div>
+        <div class="chat-content" id="chatContent">
+            <div class="bot-message">📌 Hãy chọn một môn học để bắt đầu.</div>
+        </div>
+        <div class="chat-input">
+            <input type="text" id="chatInput" placeholder="Nhập câu hỏi...">
+            <button onclick="sendMessage()">
+                <i class="fas fa-paper-plane"></i>
+            </button>
+            <!-- Typing indicator -->
+            <div class="typing-indicator" id="typingIndicator" style="display: none;">
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+>>>>>>> 07a62967af4b234b9504ead2a8a09ba3662d274e
+</html>
