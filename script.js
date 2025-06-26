@@ -709,4 +709,562 @@ const quizDatabase = {
             explanation: "'I love you' có nghĩa là 'Tôi yêu bạn'"
         }
     ]
-}; 
+};
+
+// Thêm hỗ trợ đa thiết bị và file upload
+class DeviceOptimizer {
+    constructor() {
+        this.isMobile = window.innerWidth <= 768;
+        this.isTouch = 'ontouchstart' in window;
+        this.init();
+    }
+
+    init() {
+        this.detectDevice();
+        this.addTouchSupport();
+        this.restoreConversationState();
+        this.addFileUploadSupport();
+        this.addKeyboardShortcuts();
+        
+        // Auto-save conversation state
+        setInterval(() => this.saveConversationState(), 30000); // Save every 30s
+    }
+
+    detectDevice() {
+        // Phát hiện thiết bị và điều chỉnh UI
+        if (this.isMobile) {
+            document.body.classList.add('mobile-device');
+            // Tối ưu cho mobile
+            this.optimizeForMobile();
+        }
+        
+        if (this.isTouch) {
+            document.body.classList.add('touch-device');
+        }
+
+        // Phát hiện orientation change
+        window.addEventListener('orientationchange', () => {
+            setTimeout(() => this.handleOrientationChange(), 100);
+        });
+    }
+
+    optimizeForMobile() {
+        // Giảm animation cho mobile để tiết kiệm pin
+        if (this.isMobile) {
+            document.documentElement.style.setProperty('--animation-duration', '0.2s');
+        }
+
+        // Tối ưu chatbox cho mobile
+        const chatBox = document.getElementById('chatBox');
+        if (chatBox && this.isMobile) {
+            chatBox.style.width = '95vw';
+            chatBox.style.maxHeight = '80vh';
+        }
+    }
+
+    addTouchSupport() {
+        // Thêm haptic feedback cho mobile (nếu hỗ trợ)
+        if ('vibrate' in navigator) {
+            document.addEventListener('click', (e) => {
+                if (e.target.matches('.subject-card, .chat-input button, .cta-button')) {
+                    navigator.vibrate(50); // Rung nhẹ 50ms
+                }
+            });
+        }
+
+        // Swipe gesture cho chat history
+        if (this.isTouch) {
+            this.addSwipeGestures();
+        }
+    }
+
+    addSwipeGestures() {
+        const chatContent = document.getElementById('chatContent');
+        if (!chatContent) return;
+
+        let startX, startY, distX, distY;
+        const threshold = 100; // Minimum distance for swipe
+
+        chatContent.addEventListener('touchstart', (e) => {
+            startX = e.touches[0].clientX;
+            startY = e.touches[0].clientY;
+        });
+
+        chatContent.addEventListener('touchend', (e) => {
+            if (!startX || !startY) return;
+
+            distX = e.changedTouches[0].clientX - startX;
+            distY = e.changedTouches[0].clientY - startY;
+
+            // Swipe right to show chat options
+            if (Math.abs(distX) > Math.abs(distY) && distX > threshold) {
+                this.showChatOptions();
+            }
+        });
+    }
+
+    saveConversationState() {
+        try {
+            const chatHistory = document.getElementById('chatContent')?.innerHTML || '';
+            const currentSubjectElement = document.querySelector('.subject-card.active');
+            const currentSubject = currentSubjectElement ? 
+                currentSubjectElement.querySelector('span').textContent : '';
+
+            const state = {
+                chatHistory,
+                currentSubject,
+                timestamp: Date.now(),
+                deviceInfo: {
+                    userAgent: navigator.userAgent,
+                    screenWidth: window.screen.width,
+                    screenHeight: window.screen.height
+                }
+            };
+
+            localStorage.setItem('chatbotState', JSON.stringify(state));
+            
+            // Sync to cloud nếu user đã đăng nhập
+            if (this.isUserLoggedIn()) {
+                this.syncToCloud(state);
+            }
+        } catch (error) {
+            console.warn('Failed to save conversation state:', error);
+        }
+    }
+
+    restoreConversationState() {
+        try {
+            const savedState = localStorage.getItem('chatbotState');
+            if (!savedState) return;
+
+            const state = JSON.parse(savedState);
+            
+            // Kiểm tra xem state có quá cũ không (> 7 ngày)
+            const maxAge = 7 * 24 * 60 * 60 * 1000; // 7 days
+            if (Date.now() - state.timestamp > maxAge) {
+                localStorage.removeItem('chatbotState');
+                return;
+            }
+
+            // Restore chat history
+            if (state.chatHistory && state.chatHistory.trim()) {
+                const chatContent = document.getElementById('chatContent');
+                if (chatContent) {
+                    chatContent.innerHTML = state.chatHistory;
+                    
+                    // Show notification about restored session
+                    this.showNotification('💾 Phiên chat trước đã được khôi phục', 'info');
+                }
+            }
+
+            // Restore subject selection
+            if (state.currentSubject) {
+                window.currentSubject = state.currentSubject;
+            }
+        } catch (error) {
+            console.warn('Failed to restore conversation state:', error);
+            localStorage.removeItem('chatbotState');
+        }
+    }
+
+    addFileUploadSupport() {
+        const chatInput = document.querySelector('.chat-input');
+        if (!chatInput) return;
+
+        // Tạo file input ẩn
+        const fileInput = document.createElement('input');
+        fileInput.type = 'file';
+        fileInput.accept = 'image/*,audio/*,.pdf,.doc,.docx,.txt';
+        fileInput.style.display = 'none';
+        fileInput.multiple = false;
+
+        // Tạo nút upload
+        const uploadBtn = document.createElement('button');
+        uploadBtn.type = 'button';
+        uploadBtn.innerHTML = '<i class="fas fa-paperclip"></i>';
+        uploadBtn.title = 'Đính kèm file';
+        uploadBtn.className = 'upload-btn';
+        uploadBtn.style.cssText = `
+            background: #f0f4fa;
+            border: 1px solid var(--border-light);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            margin-right: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        `;
+
+        uploadBtn.addEventListener('click', () => fileInput.click());
+        uploadBtn.addEventListener('mouseenter', () => {
+            uploadBtn.style.background = 'var(--primary-color)';
+            uploadBtn.style.color = 'white';
+        });
+        uploadBtn.addEventListener('mouseleave', () => {
+            uploadBtn.style.background = '#f0f4fa';
+            uploadBtn.style.color = 'inherit';
+        });
+
+        // Xử lý file upload
+        fileInput.addEventListener('change', (e) => this.handleFileUpload(e));
+
+        // Thêm vào chat input
+        const inputElement = chatInput.querySelector('input');
+        chatInput.insertBefore(uploadBtn, inputElement);
+        chatInput.appendChild(fileInput);
+
+        // Drag and drop support
+        this.addDragDropSupport();
+    }
+
+    handleFileUpload(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        // Kiểm tra kích thước file (max 10MB)
+        const maxSize = 10 * 1024 * 1024;
+        if (file.size > maxSize) {
+            this.showNotification('❌ File quá lớn. Vui lòng chọn file nhỏ hơn 10MB', 'error');
+            return;
+        }
+
+        // Hiển thị file trong chat
+        this.displayFileInChat(file);
+        
+        // Xử lý file dựa trên loại
+        this.processFile(file);
+        
+        // Reset input
+        event.target.value = '';
+    }
+
+    displayFileInChat(file) {
+        const chatContent = document.getElementById('chatContent');
+        if (!chatContent) return;
+
+        const fileMessage = document.createElement('div');
+        fileMessage.className = 'user-message file-message';
+        
+        const fileIcon = this.getFileIcon(file.type);
+        const fileSize = this.formatFileSize(file.size);
+        
+        fileMessage.innerHTML = `
+            <div class="file-preview">
+                <i class="${fileIcon}" style="font-size: 24px; margin-right: 10px;"></i>
+                <div class="file-info">
+                    <div class="file-name">${file.name}</div>
+                    <div class="file-size" style="font-size: 0.8em; opacity: 0.7;">${fileSize}</div>
+                </div>
+            </div>
+        `;
+
+        chatContent.appendChild(fileMessage);
+        chatContent.scrollTop = chatContent.scrollHeight;
+
+        // Nếu là ảnh, hiển thị preview
+        if (file.type.startsWith('image/')) {
+            this.addImagePreview(fileMessage, file);
+        }
+    }
+
+    addImagePreview(messageElement, file) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const img = document.createElement('img');
+            img.src = e.target.result;
+            img.style.cssText = `
+                max-width: 200px;
+                max-height: 200px;
+                border-radius: 8px;
+                margin-top: 8px;
+                cursor: pointer;
+            `;
+            img.onclick = () => this.openImageModal(e.target.result);
+            messageElement.appendChild(img);
+        };
+        reader.readAsDataURL(file);
+    }
+
+    openImageModal(imageSrc) {
+        const modal = document.createElement('div');
+        modal.className = 'image-modal';
+        modal.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            cursor: pointer;
+        `;
+
+        const img = document.createElement('img');
+        img.src = imageSrc;
+        img.style.cssText = `
+            max-width: 90%;
+            max-height: 90%;
+            border-radius: 8px;
+        `;
+
+        modal.appendChild(img);
+        modal.onclick = () => document.body.removeChild(modal);
+        document.body.appendChild(modal);
+    }
+
+    getFileIcon(fileType) {
+        if (fileType.startsWith('image/')) return 'fas fa-image';
+        if (fileType.startsWith('audio/')) return 'fas fa-music';
+        if (fileType.includes('pdf')) return 'fas fa-file-pdf';
+        if (fileType.includes('word')) return 'fas fa-file-word';
+        if (fileType.includes('text')) return 'fas fa-file-alt';
+        return 'fas fa-file';
+    }
+
+    formatFileSize(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+
+    addDragDropSupport() {
+        const chatBox = document.getElementById('chatBox');
+        if (!chatBox) return;
+
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            chatBox.addEventListener(eventName, (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+            });
+        });
+
+        chatBox.addEventListener('dragover', () => {
+            chatBox.classList.add('drag-over');
+        });
+
+        chatBox.addEventListener('dragleave', () => {
+            chatBox.classList.remove('drag-over');
+        });
+
+        chatBox.addEventListener('drop', (e) => {
+            chatBox.classList.remove('drag-over');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                this.handleFileUpload({target: {files}});
+            }
+        });
+    }
+
+    addKeyboardShortcuts() {
+        document.addEventListener('keydown', (e) => {
+            // Ctrl/Cmd + Enter để gửi message
+            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                const sendBtn = document.querySelector('.chat-input button[onclick="sendMessage()"]');
+                if (sendBtn) sendBtn.click();
+            }
+
+            // Escape để đóng chat
+            if (e.key === 'Escape') {
+                const chatBox = document.getElementById('chatBox');
+                if (chatBox && chatBox.style.display !== 'none') {
+                    closeChatBox();
+                }
+            }
+
+            // Ctrl/Cmd + U để upload file
+            if ((e.ctrlKey || e.metaKey) && e.key === 'u') {
+                e.preventDefault();
+                const uploadBtn = document.querySelector('.upload-btn');
+                if (uploadBtn) uploadBtn.click();
+            }
+        });
+    }
+
+    handleOrientationChange() {
+        // Điều chỉnh UI khi xoay màn hình
+        const chatBox = document.getElementById('chatBox');
+        if (!chatBox) return;
+
+        if (window.orientation === 90 || window.orientation === -90) {
+            // Landscape mode
+            chatBox.style.maxHeight = '60vh';
+        } else {
+            // Portrait mode
+            chatBox.style.maxHeight = '80vh';
+        }
+    }
+
+    processFile(file) {
+        // Xử lý file và tạo response từ bot
+        setTimeout(() => {
+            let botResponse = '';
+            
+            if (file.type.startsWith('image/')) {
+                botResponse = '🖼️ Tôi đã nhận được hình ảnh của bạn. Bạn có muốn tôi phân tích nội dung hoặc giải thích gì về hình này không?';
+            } else if (file.type.includes('pdf')) {
+                botResponse = '📄 Tôi đã nhận được file PDF. Bạn có muốn tôi tóm tắt nội dung hoặc trả lời câu hỏi về tài liệu này không?';
+            } else if (file.type.startsWith('audio/')) {
+                botResponse = '🎵 Tôi đã nhận được file audio. Hiện tại tôi chưa thể phân tích âm thanh, nhưng bạn có thể mô tả nội dung để tôi hỗ trợ bạn tốt hơn.';
+            } else {
+                botResponse = '📎 Tôi đã nhận được file của bạn. Bạn có thể mô tả nội dung để tôi có thể hỗ trợ bạn tốt hơn không?';
+            }
+
+            addBotMessage(botResponse);
+        }, 1000);
+    }
+
+    isUserLoggedIn() {
+        // Kiểm tra trạng thái đăng nhập
+        return localStorage.getItem('isLoggedIn') === 'true';
+    }
+
+    syncToCloud(state) {
+        // Placeholder cho sync lên cloud
+        // Có thể implement với Firebase, Supabase, hoặc API backend
+        console.log('Syncing to cloud...', state);
+    }
+
+    showChatOptions() {
+        // Hiển thị các tùy chọn chat khi swipe
+        const existingOptions = document.querySelector('.swipe-options');
+        if (existingOptions) return;
+
+        const options = document.createElement('div');
+        options.className = 'swipe-options';
+        options.style.cssText = `
+            position: fixed;
+            top: 50%;
+            right: 20px;
+            transform: translateY(-50%);
+            background: var(--bg-card-light);
+            border-radius: 15px;
+            padding: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            z-index: 1500;
+            animation: slideInLeft 0.3s ease;
+        `;
+
+        options.innerHTML = `
+            <button onclick="this.parentElement.remove(); window.deviceOptimizer.clearChat()">
+                <i class="fas fa-trash"></i> Xóa chat
+            </button>
+            <button onclick="this.parentElement.remove(); window.deviceOptimizer.exportChat()">
+                <i class="fas fa-download"></i> Xuất chat
+            </button>
+            <button onclick="this.parentElement.remove()">
+                <i class="fas fa-times"></i> Đóng
+            </button>
+        `;
+
+        document.body.appendChild(options);
+
+        // Auto-hide after 5s
+        setTimeout(() => {
+            if (options.parentElement) {
+                options.remove();
+            }
+        }, 5000);
+    }
+
+    clearChat() {
+        const chatContent = document.getElementById('chatContent');
+        if (chatContent) {
+            chatContent.innerHTML = '<div class="bot-message">📌 Hãy chọn một môn học để bắt đầu.</div>';
+            localStorage.removeItem('chatbotState');
+            this.showNotification('🗑️ Chat đã được xóa', 'info');
+        }
+    }
+
+    exportChat() {
+        const chatContent = document.getElementById('chatContent');
+        if (!chatContent) return;
+
+        const chatText = chatContent.innerText;
+        const blob = new Blob([chatText], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `chat-export-${new Date().toISOString().split('T')[0]}.txt`;
+        a.click();
+        
+        URL.revokeObjectURL(url);
+        this.showNotification('💾 Chat đã được xuất', 'success');
+    }
+
+    showNotification(message, type = 'info') {
+        // Sử dụng hệ thống toast có sẵn
+        if (window.showToast) {
+            window.showToast(message, type);
+        } else {
+            // Fallback notification
+            console.log(`${type.toUpperCase()}: ${message}`);
+        }
+    }
+}
+
+// Khởi tạo DeviceOptimizer khi trang load
+document.addEventListener('DOMContentLoaded', () => {
+    window.deviceOptimizer = new DeviceOptimizer();
+});
+
+// Thêm CSS cho drag and drop
+const style = document.createElement('style');
+style.textContent = `
+    .drag-over {
+        border: 2px dashed var(--primary-color) !important;
+        background: rgba(91, 123, 255, 0.05) !important;
+    }
+
+    .swipe-options button {
+        display: block;
+        width: 100%;
+        padding: 10px 15px;
+        margin: 5px 0;
+        border: none;
+        background: var(--bg-light);
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .swipe-options button:hover {
+        background: var(--primary-color);
+        color: white;
+    }
+
+    @keyframes slideInLeft {
+        from { transform: translateY(-50%) translateX(100%); opacity: 0; }
+        to { transform: translateY(-50%) translateX(0); opacity: 1; }
+    }
+
+    .file-message {
+        max-width: 300px;
+    }
+
+    .file-preview {
+        display: flex;
+        align-items: center;
+        padding: 10px;
+        background: rgba(255,255,255,0.5);
+        border-radius: 8px;
+        margin: 5px 0;
+    }
+
+    @media (max-width: 480px) {
+        .upload-btn {
+            width: 35px !important;
+            height: 35px !important;
+            margin-right: 6px !important;
+        }
+    }
+`;
+document.head.appendChild(style); 
