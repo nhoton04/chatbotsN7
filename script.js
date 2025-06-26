@@ -4,7 +4,14 @@ let isTyping = false; // Để kiểm soát typing animation
 
 // Initialize app on load
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('📱 Script.js DOM loaded');
     loadTheme();
+    
+    // Check auth status and update UI
+    if (typeof checkAuthState === 'function') {
+        console.log('🔐 Calling checkAuthState from script.js');
+        checkAuthState();
+    }
     
     // Load chat history for authenticated users when choosing a subject
     if (isAuthenticated() && currentSubject) {

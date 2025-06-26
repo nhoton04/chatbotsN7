@@ -218,7 +218,7 @@ app.post('/api/login', (req, res) => {
       }
 
       const token = jwt.sign(
-        { userId: user.id, username: user.username },
+        { userId: user.id, username: user.username, role: user.role || 'user' },
         JWT_SECRET,
         { expiresIn: '24h' }
       );
@@ -229,7 +229,8 @@ app.post('/api/login', (req, res) => {
         user: { 
           id: user.id, 
           username: user.username, 
-          email: user.email 
+          email: user.email,
+          role: user.role || 'user'
         }
       });
     }
@@ -320,6 +321,115 @@ app.post('/api/quiz-progress', authenticateToken, (req, res) => {
       res.json({ message: 'Cập nhật tiến độ thành công' });
     }
   );
+});
+
+// Middleware kiểm tra Admin
+const requireAdmin = (req, res, next) => {
+  if (!req.user) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+  
+  // Kiểm tra role trong JWT token
+  if (req.user.role !== 'admin') {
+    return res.status(403).json({ error: 'Admin access required' });
+  }
+  
+  next();
+};
+
+// Admin Routes
+app.get('/api/admin/check', authenticateToken, requireAdmin, (req, res) => {
+  res.json({ message: 'Admin access confirmed', user: req.user });
+});
+
+app.get('/api/admin/stats', authenticateToken, requireAdmin, (req, res) => {
+  const today = new Date().toISOString().split('T')[0];
+  
+  // Sử dụng Promise để xử lý multiple queries
+  Promise.all([
+    new Promise((resolve, reject) => {
+      db.get('SELECT COUNT(*) as totalUsers FROM users', (err, result) => {
+        if (err) reject(err);
+        else resolve(result.totalUsers);
+      });
+    }),
+    new Promise((resolve, reject) => {
+      db.get('SELECT COUNT(*) as todayMessages FROM chat_history WHERE DATE(created_at) = ?', [today], (err, result) => {
+        if (err) reject(err);
+        else resolve(result.todayMessages);
+      });
+    }),
+    new Promise((resolve, reject) => {
+      db.get('SELECT COUNT(DISTINCT user_id) as activeUsers FROM chat_history WHERE DATE(created_at) = ?', [today], (err, result) => {
+        if (err) reject(err);
+        else resolve(result.activeUsers);
+      });
+    })
+  ])
+  .then(([totalUsers, todayMessages, activeUsers]) => {
+    res.json({
+      totalUsers,
+      todayMessages,
+      activeUsers
+    });
+  })
+  .catch(err => {
+    console.error('Stats error:', err);
+    res.status(500).json({ error: 'Database error' });
+  });
+});
+
+app.get('/api/admin/users', authenticateToken, requireAdmin, (req, res) => {
+  db.all('SELECT id, username, email, role, created_at FROM users ORDER BY created_at DESC', (err, users) => {
+    if (err) {
+      return res.status(500).json({ error: 'Database error' });
+    }
+    res.json(users);
+  });
+});
+
+app.post('/api/admin/users/:id/promote', authenticateToken, requireAdmin, (req, res) => {
+  const userId = req.params.id;
+  
+  db.run('UPDATE users SET role = ? WHERE id = ?', ['admin', userId], function(err) {
+    if (err) {
+      return res.status(500).json({ error: 'Database error' });
+    }
+    res.json({ message: 'User promoted to admin successfully' });
+  });
+});
+
+app.delete('/api/admin/users/:id', authenticateToken, requireAdmin, (req, res) => {
+  const userId = req.params.id;
+  
+  // Không cho phép xóa chính mình
+  if (userId == req.user.userId) {
+    return res.status(400).json({ error: 'Cannot delete your own account' });
+  }
+  
+  // Xóa tất cả dữ liệu liên quan
+  db.serialize(() => {
+    db.run('DELETE FROM chat_history WHERE user_id = ?', [userId]);
+    db.run('DELETE FROM user_progress WHERE user_id = ?', [userId]);
+    db.run('DELETE FROM users WHERE id = ?', [userId], function(err) {
+      if (err) {
+        return res.status(500).json({ error: 'Database error' });
+      }
+      res.json({ message: 'User deleted successfully' });
+    });
+  });
+});
+
+// Verify token endpoint
+app.get('/api/verify', authenticateToken, (req, res) => {
+  res.json({ 
+    message: 'Token valid', 
+    user: {
+      id: req.user.userId,
+      username: req.user.username,
+      role: req.user.role || 'user'
+    }
+  });
 });
 
 // Start server

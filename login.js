@@ -102,7 +102,7 @@ async function loginUser() {
     try {
         showLoading();
         
-        const data = await apiCall('/auth/login', 'POST', {
+        const data = await apiCall('/login', 'POST', {
             username,
             password
         });
@@ -116,9 +116,13 @@ async function loginUser() {
         // Clear form
         document.getElementById('loginForm').reset();
         
-        // Redirect to main page after 1 second
+        // Redirect based on user role after 1 second
         setTimeout(() => {
-            window.location.href = 'index.html';
+            if (data.user && data.user.role === 'admin') {
+                window.location.href = 'admin.html';
+            } else {
+                window.location.href = 'index.html';
+            }
         }, 1000);
         
     } catch (error) {
@@ -166,7 +170,7 @@ async function registerUser() {
     try {
         showLoading();
         
-        const data = await apiCall('/auth/register', 'POST', {
+        const data = await apiCall('/register', 'POST', {
             username,
             email,
             password

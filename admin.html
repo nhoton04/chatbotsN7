@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - StudyBot</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        .admin-panel {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
+        }
+        .admin-header {
+            background: linear-gradient(135deg, #5b7bff, #8a63f7);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            text-align: center;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+        .admin-header h1 {
+            margin: 0;
+            font-size: 2.5rem;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 20px;
+        }
+        .header-content > div:first-child {
+            text-align: left;
+        }
+        .admin-user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .admin-user-display {
+            background: rgba(255,255,255,0.2);
+            padding: 10px 15px;
+            border-radius: 25px;
+            font-weight: 600;
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                text-align: center;
+            }
+            .admin-user-info {
+                flex-direction: column;
+                gap: 10px;
+            }
+        }
+        .admin-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .admin-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            border: 1px solid #e0e7ee;
+            transition: transform 0.3s ease;
+        }
+        .admin-card:hover {
+            transform: translateY(-5px);
+        }
+        .admin-card h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.3rem;
+        }
+        .stat-number {
+            font-size: 3rem;
+            font-weight: bold;
+            color: #5b7bff;
+            text-align: center;
+            margin: 20px 0;
+        }
+        .admin-btn {
+            background: #5b7bff;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 5px;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .admin-btn:hover {
+            background: #4a6dff;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(91, 123, 255, 0.3);
+        }
+        .admin-btn.danger {
+            background: #e74c3c;
+        }
+        .admin-btn.danger:hover {
+            background: #c0392b;
+        }
+        .admin-btn.success {
+            background: #27ae60;
+        }
+        .admin-btn.success:hover {
+            background: #229954;
+        }
+        .user-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .user-table th,
+        .user-table td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+        .user-table th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        .user-table tr:hover {
+            background: #f8f9fa;
+        }
+        .role-badge {
+            padding: 6px 12px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .role-admin {
+            background: #e74c3c;
+            color: white;
+        }
+        .role-user {
+            background: #3498db;
+            color: white;
+        }
+        .back-btn {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: rgba(255,255,255,0.9);
+            color: #5b7bff;
+            border: 2px solid #5b7bff;
+            padding: 10px 15px;
+            border-radius: 25px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+        .back-btn:hover {
+            background: #5b7bff;
+            color: white;
+            transform: translateY(-2px);
+        }
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #7f8c8d;
+        }
+        .loading i {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back-btn">
+        <i class="fas fa-arrow-left"></i> Về trang chủ
+    </a>
+
+    <div class="admin-panel">
+        <div class="admin-header">
+            <div class="header-content">
+                <div>
+                    <h1><i class="fas fa-shield-alt"></i> Admin Panel</h1>
+                    <p>Quản lý hệ thống StudyBot - Trợ lý học tập thông minh</p>
+                </div>
+                <div class="admin-user-info">
+                    <span id="adminUserName" class="admin-user-display">👑 Admin</span>
+                    <button class="admin-btn danger" onclick="logoutAdmin()" title="Đăng xuất">
+                        <i class="fas fa-sign-out-alt"></i> Đăng xuất
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Statistics -->
+        <div class="admin-grid">
+            <div class="admin-card">
+                <h3><i class="fas fa-users"></i> Tổng người dùng</h3>
+                <div class="stat-number" id="totalUsers">
+                    <div class="loading">
+                        <i class="fas fa-spinner"></i>
+                        <div>Đang tải...</div>
+                    </div>
+                </div>
+            </div>
+            <div class="admin-card">
+                <h3><i class="fas fa-comments"></i> Tin nhắn hôm nay</h3>
+                <div class="stat-number" id="todayMessages">
+                    <div class="loading">
+                        <i class="fas fa-spinner"></i>
+                        <div>Đang tải...</div>
+                    </div>
+                </div>
+            </div>
+            <div class="admin-card">
+                <h3><i class="fas fa-chart-line"></i> Người dùng hoạt động</h3>
+                <div class="stat-number" id="activeUsers">
+                    <div class="loading">
+                        <i class="fas fa-spinner"></i>
+                        <div>Đang tải...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- User Management -->
+        <div class="admin-card">
+            <h3><i class="fas fa-user-cog"></i> Quản lý người dùng</h3>
+            <div style="margin-bottom: 20px;">
+                <button class="admin-btn" onclick="loadUsers()">
+                    <i class="fas fa-refresh"></i> Tải lại
+                </button>
+                <button class="admin-btn success" onclick="exportUsers()">
+                    <i class="fas fa-download"></i> Xuất dữ liệu
+                </button>
+            </div>
+            
+            <div style="overflow-x: auto;">
+                <table class="user-table" id="usersTable">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Username</th>
+                            <th>Email</th>
+                            <th>Role</th>
+                            <th>Ngày tạo</th>
+                            <th>Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody id="usersTableBody">
+                        <tr>
+                            <td colspan="6" class="loading">
+                                <i class="fas fa-spinner"></i>
+                                <div>Đang tải danh sách người dùng...</div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="admin-card">
+            <h3><i class="fas fa-bolt"></i> Hành động nhanh</h3>
+            <button class="admin-btn" onclick="showSystemInfo()">
+                <i class="fas fa-info-circle"></i> Thông tin hệ thống
+            </button>
+            <button class="admin-btn" onclick="clearOldChats()">
+                <i class="fas fa-broom"></i> Dọn dẹp chat cũ
+            </button>
+            <button class="admin-btn success" onclick="backupDatabase()">
+                <i class="fas fa-save"></i> Backup dữ liệu
+            </button>
+            <button class="admin-btn danger" onclick="confirmReset()">
+                <i class="fas fa-exclamation-triangle"></i> Cài đặt lại
+            </button>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // Admin Panel JavaScript
+        const API_BASE = '/api';
+        let authToken = localStorage.getItem('authToken');
+
+        // Kiểm tra quyền admin khi load trang
+        async function checkAdminAccess() {
+            if (!authToken) {
+                alert('❌ Vui lòng đăng nhập trước!');
+                window.location.href = 'login.html';
+                return false;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/admin/check`, {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+                
+                if (!response.ok) {
+                    if (response.status === 403) {
+                        alert('🚫 Bạn không có quyền truy cập Admin Panel!');
+                    } else {
+                        alert('❌ Lỗi xác thực. Vui lòng đăng nhập lại!');
+                    }
+                    window.location.href = 'index.html';
+                    return false;
+                }
+                
+                const data = await response.json();
+                console.log('✅ Admin access confirmed:', data);
+                return true;
+            } catch (error) {
+                console.error('Admin check failed:', error);
+                alert('❌ Không thể kết nối đến server!');
+                return false;
+            }
+        }
+
+        // Load thống kê hệ thống
+        async function loadStats() {
+            try {
+                const response = await fetch(`${API_BASE}/admin/stats`, {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+                
+                if (response.ok) {
+                    const stats = await response.json();
+                    
+                    document.getElementById('totalUsers').innerHTML = stats.totalUsers || 0;
+                    document.getElementById('todayMessages').innerHTML = stats.todayMessages || 0;
+                    document.getElementById('activeUsers').innerHTML = stats.activeUsers || 0;
+                } else {
+                    throw new Error('Failed to load stats');
+                }
+            } catch (error) {
+                console.error('Failed to load stats:', error);
+                ['totalUsers', 'todayMessages', 'activeUsers'].forEach(id => {
+                    document.getElementById(id).innerHTML = '<span style="color: #e74c3c;">❌</span>';
+                });
+            }
+        }
+
+        // Load danh sách users
+        async function loadUsers() {
+            const tbody = document.getElementById('usersTableBody');
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="6" class="loading">
+                        <i class="fas fa-spinner"></i>
+                        <div>Đang tải danh sách người dùng...</div>
+                    </td>
+                </tr>
+            `;
+
+            try {
+                const response = await fetch(`${API_BASE}/admin/users`, {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+                
+                if (response.ok) {
+                    const users = await response.json();
+                    
+                    if (users.length === 0) {
+                        tbody.innerHTML = `
+                            <tr>
+                                <td colspan="6" style="text-align: center; color: #7f8c8d;">
+                                    Chưa có người dùng nào
+                                </td>
+                            </tr>
+                        `;
+                        return;
+                    }
+                    
+                    tbody.innerHTML = users.map(user => `
+                        <tr>
+                            <td><strong>${user.id}</strong></td>
+                            <td>
+                                ${user.role === 'admin' ? '👑' : '👤'} 
+                                ${user.username}
+                            </td>
+                            <td>${user.email}</td>
+                            <td>
+                                <span class="role-badge role-${user.role || 'user'}">
+                                    ${user.role || 'user'}
+                                </span>
+                            </td>
+                            <td>${new Date(user.created_at).toLocaleDateString('vi-VN')}</td>
+                            <td>
+                                ${user.role !== 'admin' ? `
+                                    <button class="admin-btn" onclick="promoteUser(${user.id})" 
+                                            title="Cấp quyền Admin">
+                                        <i class="fas fa-user-shield"></i>
+                                    </button>
+                                ` : ''}
+                                <button class="admin-btn danger" onclick="deleteUser(${user.id}, '${user.username}')"
+                                        title="Xóa người dùng">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    `).join('');
+                } else {
+                    throw new Error('Failed to load users');
+                }
+            } catch (error) {
+                console.error('Failed to load users:', error);
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6" style="text-align: center; color: #e74c3c;">
+                            ❌ Không thể tải danh sách người dùng
+                        </td>
+                    </tr>
+                `;
+            }
+        }
+
+        // Cấp quyền admin
+        async function promoteUser(userId) {
+            if (!confirm('🤔 Bạn có chắc muốn cấp quyền Admin cho user này?')) return;
+            
+            try {
+                const response = await fetch(`${API_BASE}/admin/users/${userId}/promote`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+                
+                if (response.ok) {
+                    showToast('✅ Đã cấp quyền Admin thành công!', 'success');
+                    loadUsers();
+                } else {
+                    throw new Error('Failed to promote user');
+                }
+            } catch (error) {
+                console.error('Failed to promote user:', error);
+                showToast('❌ Có lỗi xảy ra khi cấp quyền!', 'error');
+            }
+        }
+
+        // Xóa user
+        async function deleteUser(userId, username) {
+            if (!confirm(`⚠️ Bạn có chắc muốn xóa user "${username}"?\n\nTất cả dữ liệu của user này sẽ bị xóa vĩnh viễn!`)) return;
+            
+            try {
+                const response = await fetch(`${API_BASE}/admin/users/${userId}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+                
+                if (response.ok) {
+                    showToast('✅ Đã xóa user thành công!', 'success');
+                    loadUsers();
+                    loadStats(); // Refresh stats
+                } else {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Failed to delete user');
+                }
+            } catch (error) {
+                console.error('Failed to delete user:', error);
+                showToast(`❌ ${error.message}`, 'error');
+            }
+        }
+
+        // Export users (placeholder)
+        function exportUsers() {
+            showToast('📊 Tính năng xuất dữ liệu đang được phát triển...', 'info');
+        }
+
+        // Show system info
+        function showSystemInfo() {
+            const info = `
+🖥️ Thông tin hệ thống:
+- Server: Node.js + Express
+- Database: SQLite
+- Frontend: HTML5 + JavaScript
+- Authentication: JWT
+- Admin Panel: v1.0
+
+🚀 Phiên bản: StudyBot Admin v1.0
+📅 Cập nhật: ${new Date().toLocaleDateString('vi-VN')}
+            `;
+            alert(info);
+        }
+
+        // Clear old chats (placeholder)
+        function clearOldChats() {
+            if (confirm('🧹 Bạn có chắc muốn xóa tất cả chat cũ hơn 30 ngày?')) {
+                showToast('🧹 Tính năng dọn dẹp đang được phát triển...', 'info');
+            }
+        }
+
+        // Backup database (placeholder)
+        function backupDatabase() {
+            showToast('💾 Tính năng backup đang được phát triển...', 'info');
+        }
+
+        // Confirm reset
+        function confirmReset() {
+            const confirmation = prompt('⚠️ CẢNH BÁO: Bạn sắp xóa toàn bộ dữ liệu!\n\nNhập "RESET" để xác nhận:');
+            if (confirmation === 'RESET') {
+                showToast('🚨 Tính năng reset hệ thống đang được phát triển...', 'info');
+            }
+        }
+
+        // Logout admin
+        function logoutAdmin() {
+            if (confirm('🤔 Bạn có chắc muốn đăng xuất khỏi Admin Panel?')) {
+                // Clear localStorage
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
+                localStorage.removeItem('authToken');
+                localStorage.removeItem('currentUser');
+                
+                // Show toast and redirect
+                showToast('👋 Đã đăng xuất! Chuyển về trang đăng nhập...', 'info');
+                
+                setTimeout(() => {
+                    window.location.href = 'login.html';
+                }, 1500);
+            }
+        }
+
+        // Show toast notification
+        function showToast(message, type = 'info') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = `toast show ${type}`;
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 5000);
+        }
+
+        // Initialize admin panel
+        document.addEventListener('DOMContentLoaded', async () => {
+            console.log('🚀 Khởi động Admin Panel...');
+            
+            if (await checkAdminAccess()) {
+                console.log('✅ Admin access confirmed, loading data...');
+                
+                // Display admin user name
+                const user = JSON.parse(localStorage.getItem('user') || '{}');
+                const adminUserName = document.getElementById('adminUserName');
+                if (adminUserName && user.username) {
+                    adminUserName.textContent = `👑 ${user.username}`;
+                }
+                
+                await Promise.all([loadStats(), loadUsers()]);
+                console.log('✅ Admin Panel loaded successfully!');
+            }
+        });
+    </script>
+</body>
+</html> 

@@ -7,20 +7,42 @@ let authToken = null;
 
 // Initialize auth on page load
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('🔐 Auth.js DOM loaded');
     loadAuthFromStorage();
     checkAuthState();
     setupAuthForms();
+    console.log('✅ Auth initialization complete');
 });
 
 // Load saved auth state from localStorage
 function loadAuthFromStorage() {
-    const savedToken = localStorage.getItem('authToken');
-    const savedUser = localStorage.getItem('currentUser');
+    // Check both old and new storage keys for compatibility
+    const savedToken = localStorage.getItem('token') || localStorage.getItem('authToken');
+    const savedUser = localStorage.getItem('user') || localStorage.getItem('currentUser');
+    
+    console.log('🗂️ Loading from storage:', { savedToken: !!savedToken, savedUser: !!savedUser });
+    console.log('💾 localStorage content:', {
+        token: localStorage.getItem('token'),
+        user: localStorage.getItem('user'),
+        authToken: localStorage.getItem('authToken'),
+        currentUser: localStorage.getItem('currentUser')
+    });
     
     if (savedToken && savedUser) {
         authToken = savedToken;
         currentUser = JSON.parse(savedUser);
+        
+        console.log('👤 Loaded user:', currentUser);
+        
+        // Update to use consistent keys
+        localStorage.setItem('token', savedToken);
+        localStorage.setItem('user', savedUser);
+        localStorage.setItem('authToken', savedToken);
+        localStorage.setItem('currentUser', savedUser);
+        
         updateUIForLoggedInUser();
+    } else {
+        console.log('❌ No saved auth data found');
     }
 }
 
@@ -35,13 +57,50 @@ function updateUIForLoggedInUser() {
     const authButtons = document.getElementById('authButtons');
     const userName = document.getElementById('userName');
     
+    console.log('🔍 UpdateUI called. Auth status:', isAuthenticated(), 'User:', currentUser);
+    
     if (isAuthenticated()) {
-        userInfo.style.display = 'flex';
-        authButtons.style.display = 'none';
-        userName.textContent = currentUser.username;
+        console.log('✅ User authenticated, showing user info');
+        if (userInfo) userInfo.style.display = 'flex';
+        if (authButtons) authButtons.style.display = 'none';
+        
+        // Hiển thị tên và role
+        const roleIcon = currentUser.role === 'admin' ? '👑' : '👤';
+        if (userName) {
+            userName.textContent = `${roleIcon} ${currentUser.username}`;
+            console.log('👤 Set username:', userName.textContent);
+        }
+        
+        // Thêm nút Admin Panel nếu là admin
+        addAdminButtonIfNeeded();
     } else {
-        userInfo.style.display = 'none';
-        authButtons.style.display = 'flex';
+        console.log('❌ User not authenticated, showing login buttons');
+        if (userInfo) userInfo.style.display = 'none';
+        if (authButtons) authButtons.style.display = 'flex';
+    }
+}
+
+// Thêm nút Admin Panel cho admin users
+function addAdminButtonIfNeeded() {
+    if (currentUser && currentUser.role === 'admin') {
+        const userSection = document.getElementById('userSection');
+        let adminBtn = document.getElementById('adminPanelBtn');
+        
+        if (!adminBtn) {
+            adminBtn = document.createElement('a');
+            adminBtn.id = 'adminPanelBtn';
+            adminBtn.href = 'admin.html';
+            adminBtn.className = 'auth-btn admin-btn';
+            adminBtn.innerHTML = '<i class="fas fa-shield-alt"></i> Admin Panel';
+            adminBtn.style.cssText = `
+                background: linear-gradient(135deg, #e74c3c, #c0392b);
+                margin-left: 10px;
+                animation: pulse 2s infinite;
+            `;
+            
+            const userInfo = document.getElementById('userInfo');
+            userInfo.appendChild(adminBtn);
+        }
     }
 }
 
@@ -119,7 +178,9 @@ async function handleLogin(e) {
             authToken = data.token;
             currentUser = data.user;
             
-            // Save to localStorage
+            // Save to localStorage (use both keys for compatibility)
+            localStorage.setItem('token', authToken);
+            localStorage.setItem('user', JSON.stringify(currentUser));
             localStorage.setItem('authToken', authToken);
             localStorage.setItem('currentUser', JSON.stringify(currentUser));
             
@@ -174,7 +235,9 @@ async function handleRegister(e) {
             authToken = data.token;
             currentUser = data.user;
             
-            // Save to localStorage
+            // Save to localStorage (use both keys for compatibility)
+            localStorage.setItem('token', authToken);
+            localStorage.setItem('user', JSON.stringify(currentUser));
             localStorage.setItem('authToken', authToken);
             localStorage.setItem('currentUser', JSON.stringify(currentUser));
             
@@ -200,7 +263,9 @@ function logout() {
     authToken = null;
     currentUser = null;
     
-    // Clear localStorage
+    // Clear all localStorage keys
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
     localStorage.removeItem('authToken');
     localStorage.removeItem('currentUser');
     
