@@ -125,7 +125,7 @@ async function handleLogin(e) {
             
             // Update UI
             updateUIForLoggedInUser();
-            closeModal('loginModal');
+            closeAuthModal();
             showToast(data.message || 'Đăng nhập thành công!', 'success');
             
             // Clear form
@@ -180,7 +180,7 @@ async function handleRegister(e) {
             
             // Update UI
             updateUIForLoggedInUser();
-            closeModal('registerModal');
+            closeAuthModal();
             showToast(data.message || 'Đăng ký thành công!', 'success');
             
             // Clear form
@@ -215,35 +215,73 @@ function logout() {
     }
 }
 
-// Show modal functions
-function showLoginModal() {
-    const modal = document.getElementById('loginModal');
+// Show auth modal
+function showAuthModal(defaultTab = 'login') {
+    const modal = document.getElementById('authModal');
     modal.style.display = 'block';
     setTimeout(() => modal.classList.add('show'), 10);
+    
+    // Set the default tab
+    switchTab(defaultTab);
+}
+
+// For backward compatibility
+function showLoginModal() {
+    showAuthModal('login');
 }
 
 function showRegisterModal() {
-    const modal = document.getElementById('registerModal');
-    modal.style.display = 'block';
-    setTimeout(() => modal.classList.add('show'), 10);
+    showAuthModal('register');
 }
 
-// Close modal function
-function closeModal(modalId) {
-    const modal = document.getElementById(modalId);
+// Close auth modal
+function closeAuthModal() {
+    const modal = document.getElementById('authModal');
     modal.classList.remove('show');
     setTimeout(() => modal.style.display = 'none', 300);
 }
 
-// Switch between login and register modals
+// Close modal function (for backward compatibility)
+function closeModal(modalId) {
+    if (modalId === 'loginModal' || modalId === 'registerModal' || modalId === 'authModal') {
+        closeAuthModal();
+    } else {
+        const modal = document.getElementById(modalId);
+        if (modal) {
+            modal.classList.remove('show');
+            setTimeout(() => modal.style.display = 'none', 300);
+        }
+    }
+}
+
+// Switch between tabs
+function switchTab(tabName) {
+    // Update tab buttons
+    const loginTab = document.getElementById('loginTab');
+    const registerTab = document.getElementById('registerTab');
+    const loginPane = document.getElementById('loginPane');
+    const registerPane = document.getElementById('registerPane');
+    
+    if (tabName === 'login') {
+        loginTab.classList.add('active');
+        registerTab.classList.remove('active');
+        loginPane.classList.add('active');
+        registerPane.classList.remove('active');
+    } else if (tabName === 'register') {
+        registerTab.classList.add('active');
+        loginTab.classList.remove('active');
+        registerPane.classList.add('active');
+        loginPane.classList.remove('active');
+    }
+}
+
+// Switch between login and register (for backward compatibility)
 function switchToRegister() {
-    closeModal('loginModal');
-    setTimeout(() => showRegisterModal(), 300);
+    switchTab('register');
 }
 
 function switchToLogin() {
-    closeModal('registerModal');
-    setTimeout(() => showLoginModal(), 300);
+    switchTab('login');
 }
 
 // Toast notification system
@@ -343,9 +381,15 @@ async function saveQuizProgress(subject, score, totalQuestions) {
 
 // Close modal when clicking outside
 window.onclick = function(event) {
+    const authModal = document.getElementById('authModal');
+    if (event.target === authModal) {
+        closeAuthModal();
+    }
+    
+    // Handle other modals if any
     const modals = document.querySelectorAll('.modal');
     modals.forEach(modal => {
-        if (event.target === modal) {
+        if (event.target === modal && modal.id !== 'authModal') {
             closeModal(modal.id);
         }
     });
